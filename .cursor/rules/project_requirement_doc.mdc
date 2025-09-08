@@ -1,0 +1,95 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Food Delivery App - Product Requirements Document (PRD)
+
+## 1. Introduction
+
+This document outlines the product requirements for a mobile food delivery application. The app aims to connect users with local restaurants, allowing them to browse menus, place orders, make payments, and track deliveries efficiently. The primary platforms are iOS and Android, built using Flutter. The backend will be powered by Supabase, and payments handled via CinetPay.
+
+## 2. Goals
+
+* Provide a seamless and intuitive user experience for ordering food.
+* Offer a diverse selection of local restaurants and cuisines.
+* Enable efficient order management for users.
+* Facilitate secure and convenient payment processing.
+* Provide real-time order tracking capabilities.
+* Support multiple languages (Français, Lingala, Swahili) for better accessibility.
+* Build a scalable and maintainable application using Clean Architecture and BloC.
+
+## 3. Target Audience
+
+* Individuals seeking convenient food ordering options from local restaurants.
+* Users comfortable with mobile applications and online payments.
+* Residents within the defined service areas of participating restaurants.
+* French, Lingala, and Swahili speaking users in the target market.
+
+## 4. Features
+
+### 4.1 User Management
+* **User Registration:** Sign up using only social logins: Google/Apple via Supabase Auth.
+* **User Login:** Secure authentication for returning users.
+* **Password Reset:** Ability to reset forgotten passwords via email.
+* **User Profile:** View and edit basic profile information (name, phone number - required).
+* **Address Management:** Add, edit, and delete multiple delivery addresses. Select a default address.
+
+### 4.2 Language & Localization
+* **Language Selection:** Allow users to choose their preferred language:
+    * Français (Default)
+    * Lingala
+    * Swahili
+* **Persistent Language:** Save language preference and apply it across app restarts.
+* **Language Switch:** Allow changing language at any time via profile settings.
+
+### 4.3 Restaurant & Menu Browsing
+* **Restaurant Listing:** Display a list of available restaurants based on user location (or default area). Show key info: name, cuisine type, rating, estimated delivery time, image.
+* **Search & Filtering:** Search restaurants by name or cuisine. Filter options (e.g., rating, price range, delivery time).
+* **Restaurant Details:** View detailed restaurant information: menu, opening hours, location, user reviews.
+* **Menu Display:** Browse restaurant menus categorized logically (e.g., appetizers, main courses, drinks). Display item name, description, price, and image.
+* **Item Customization:** (Optional - v1.1) Allow selection of item variants or add-ons (e.g., size, toppings).
+
+### 4.4 Ordering & Cart
+* **Add to Cart:** Add menu items to the shopping cart. Adjust item quantity.
+* **View Cart:** Review items in the cart, see subtotal, delivery fees, and total amount. Modify quantities or remove items.
+* **Checkout Process:**
+    * Select delivery address.
+    * Select payment method (CinetPay).
+    * Apply promo codes (Optional - v1.2).
+    * Review order summary before placing.
+* **Place Order:** Submit the order to the restaurant.
+
+### 4.5 Payment
+* **CinetPay Integration:** Securely process payments using the CinetPay mobile SDK or API. Handle successful payments and failures gracefully.
+* **Payment Methods:** Support payment methods available through CinetPay (e.g., Mobile Money, Cards).
+
+### 4.6 Order Tracking & History
+* **Order Confirmation:** Display confirmation screen upon successful order placement.
+* **Real-time Tracking:** (Leveraging Supabase Realtime) Show order status updates (e.g., Placed, Preparing, Out for Delivery, Delivered). Display estimated delivery time. Map view for live courier tracking (Optional - v2.0).
+* **Order History:** View a list of past orders with details (restaurant, items, total cost, date, status).
+* **Reorder:** Ability to quickly reorder items from a past order.
+
+### 4.7 Reviews & Ratings
+* **Rate Order/Restaurant:** Allow users to rate and provide feedback on completed orders/restaurants.
+* **View Ratings:** Display average restaurant ratings on listing and detail pages. Show individual reviews on the restaurant detail page.
+
+## 5. Non-Functional Requirements
+
+* **Performance:** Fast load times for restaurant lists and menus. Responsive UI interactions. Optimized image loading.
+* **Scalability:** Backend infrastructure (Supabase) should handle increasing numbers of users, restaurants, and orders.
+* **Security:** Secure user authentication. Protection against common vulnerabilities. Secure handling of payment information (delegated to CinetPay). Use Supabase Row Level Security (RLS) extensively.
+* **Reliability:** Minimize downtime. Graceful handling of network errors or API failures.
+* **Usability:** Intuitive navigation and user flow. Clear feedback to the user. Adherence to platform UI conventions (iOS/Android).
+* **Maintainability:** Clean, well-documented code following Clean Architecture and BloC principles.
+
+## 6. Future Considerations
+
+* Restaurant/Admin Portal (Web)
+* Delivery Driver App
+* Live courier tracking on a map
+* Advanced item customization
+* Promo codes and loyalty programs
+* In-app chat support
+* Scheduled orders
+* Social features (e.g., sharing orders)

@@ -1,0 +1,273 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Food Delivery App - Detailed Implementation Plan
+
+This document outlines the detailed, task-by-task implementation steps for the Food Delivery App, organized by feature.
+
+---
+
+**Phase 1: Foundation & Setup**
+
+1.  **Project Initialization:**
+    * `Task:` Initialize Git repository (`git init`). [DONE]
+    * `Task:` Perform initial commit. [DONE]
+    * `Task:` Add basic linting rules (`analysis_options.yaml`). [DONE]
+2.  **Core Dependencies:**
+    * `Task:` Add `supabase_flutter` to `pubspec.yaml`. [DONE]
+    * `Task:` Add `flutter_bloc`, `equatable` for state management. [DONE]
+    * `Task:` Add `get_it`, `injectable` for dependency injection. [DONE]
+    * `Task:` Add chosen router (`go_router` or `auto_route`). [DONE]
+    * `Task:` Add `google_fonts` for typography. [DONE]
+    * `Task:` Add `http` or `dio` (if needed beyond Supabase client). [DONE]
+    * `Task:` Add `cached_network_image` for images. [DONE]
+    * `Task:` Add `shared_preferences` for local storage. [DONE]
+3.  **Project Structure:**
+    * `Task:` Create the main directory structure (`core`, `features`, etc.) based on the File Structure document. [DONE]
+    * `Task:` Set up `injection_container.dart` for DI using `get_it`/`injectable`. [DONE]
+4.  **Supabase Client Initialization:**
+    * `Task:` Add Supabase URL and Anon Key to configuration (securely, e.g., via environment variables). [DONE]
+    * `Task:` Initialize Supabase client in `main.dart`. [DONE]
+5.  **Core UI & Navigation Setup:**
+    * `Task:` Define the main `App` widget in `main.dart`. [DONE]
+    * `Task:` Configure the chosen router (`app_router.dart`) with initial routes/placeholders. [DONE]
+    * `Task:` Implement the basic `AppTheme` in `core/config/theme/`. [DONE]
+    * `Task:` Design and implement a basic splash screen. [DONE]
+    * `Task:` Create the main navigation shell (e.g., `Scaffold` with `BottomNavigationBar`). [DONE]
+    * `Task:` Create placeholder pages/screens for main features (Home, Cart, Orders, Profile). [DONE]
+6.  **Backend Schema Setup (Supabase):**
+    * `Task:` Create `user_profiles` table and link to `auth.users`. [DONE]
+    * `Task:` Create `addresses` table with columns and FK to `user_profiles`. [DONE]
+    * `Task:` Create `restaurants`, `categories`, `menu_items` tables. [DONE]
+    * `Task:` Create `orders`, `order_items` tables. [DONE]
+    * `Task:` Create `reviews` table. [DONE]
+    * `Task:` Define relationships (FK constraints) between tables. [DONE]
+    * `Task:` Set up initial RLS policies (e.g., users can see own profiles, addresses). [DONE]
+    * `Task:` Set up Storage buckets (`restaurant_images`, `menu_item_images`) and initial policies. [DONE]
+
+---
+
+**Phase 1.5: Language Selection Feature (`features/settings`)**
+
+7.  **Domain Layer:**
+    * `Task:` Define `AppLanguage` entity with supported languages (Français, Lingala, Swahili). [DONE]
+    * `Task:` Define `SettingsRepository` interface with language management methods. [DONE]
+8.  **Data Layer:**
+    * `Task:` Implement `SettingsLocalDataSource` using `shared_preferences` to store language preference. [DONE]
+    * `Task:` Implement `SettingsRepositoryImpl` using the local data source. [DONE]
+9.  **Presentation Layer (BLoC & UI):**
+    * `Task:` Create `SettingsBloc` with states and events for language management. [DONE]
+    * `Task:` Design and implement `LanguageSelectionScreen`. [DONE]
+    * `Task:` Add language selection option to Profile screen. [DONE]
+    * `Task:` Update router to include language selection route. [DONE]
+    * `Task:` Register Settings dependencies in `injection_container.dart`. [DONE]
+10. **Testing:**
+    * `Task:` Write unit tests for `SettingsBloc`.
+    * `Task:` Write unit tests for Settings repositories and data sources.
+
+---
+
+**Phase 2: Authentication Feature (`features/auth`)**
+
+11. **Domain Layer:**
+    * `Task:` Define `AuthRepository` interface (`domain/repositories/`). [DONE]
+    * `Task:` Define `LoginUseCase`, `SignupUseCase`, `LogoutUseCase`, `PasswordResetUseCase` (`domain/usecases/`). [DONE]
+    * `Task:` Define `User` entity (if needed beyond Supabase GoTrue user). [DONE]
+12. **Data Layer:**
+    * `Task:` Implement `AuthRemoteDataSource` interface (`data/datasources/`) using `supabase_flutter` client (`signInWithPassword`, `signUp`, `signOut`, `resetPasswordForEmail`). [DONE]
+    * `Task:` Implement `AuthRepositoryImpl` (`data/repositories/`) using the remote data source. [DONE]
+13. **Presentation Layer (BLoC & UI):**
+    * `Task:` Create `AuthBloc` with states and events. [DONE]
+    * `Task:` Design UI for Login Screen. [DONE]
+    * `Task:` Implement Login Screen UI, connect to `AuthBloc`. [DONE]
+    * `Task:` Design UI for Signup Screen. [DONE]
+    * `Task:` Implement Signup Screen UI, connect to `AuthBloc`. [DONE]
+    * `Task:` Implement Password Reset flow. [DONE]
+    * `Task:` Handle navigation based on `AuthBloc` state changes. [DONE]
+14. **Dependency Injection:**
+    * `Task:` Register Auth datasources, repositories, use cases, and BLoC in `injection_container.dart`. [DONE]
+15. **Testing:**
+    * `Task:` Write unit tests for `AuthBloc`. [DONE]
+    * `Task:` Write unit tests for Auth Use Cases. [DONE]
+    * `Task:` Write unit tests for `AuthRepositoryImpl`. [DONE]
+
+---
+
+**Phase 3: User Profile & Address Management (`features/profile`, `features/address`)**
+
+16. **Domain Layer (Profile):**
+    * `Task:` Define `UserProfile` entity (`features/profile/domain/entities/`).
+    * `Task:` Define `ProfileRepository` interface (`features/profile/domain/repositories/`).
+    * `Task:` Define `GetProfileUseCase`, `UpdateProfileUseCase`.
+17. **Data Layer (Profile):**
+    * `Task:` Define `ProfileRemoteDataSource` (`features/profile/data/datasources/`) using Supabase client to interact with `user_profiles` table.
+    * `Task:` Implement `ProfileRepositoryImpl` (`features/profile/data/repositories/`).
+18. **Presentation Layer (Profile):**
+    * `Task:` Create `ProfileBloc` (states: Initial, Loading, Loaded, Error; events: FetchProfile, UpdateProfile).
+    * `Task:` Design and Implement Profile Screen UI (display user info, logout button - uses `AuthBloc` for logout).
+    * `Task:` Design and Implement Edit Profile Screen UI.
+    * `Task:` Connect Profile screens to `ProfileBloc`.
+19. **Domain Layer (Address):**
+    * `Task:` Define `Address` entity (`features/address/domain/entities/`).
+    * `Task:` Define `AddressRepository` interface (`features/address/domain/repositories/`).
+    * `Task:` Define `GetAddressesUseCase`, `AddAddressUseCase`, `UpdateAddressUseCase`, `DeleteAddressUseCase`, `SetDefaultAddressUseCase`.
+20. **Data Layer (Address):**
+    * `Task:` Define `AddressRemoteDataSource` (`features/address/data/datasources/`) using Supabase client for `addresses` table CRUD.
+    * `Task:` Implement `AddressRepositoryImpl` (`features/address/data/repositories/`).
+21. **Presentation Layer (Address):**
+    * `Task:` Create `AddressBloc` (states: Initial, Loading, Loaded, Error; events: FetchAddresses, AddAddress, etc.).
+    * `Task:` Design and Implement Address List Screen UI.
+    * `Task:` Design and Implement Add/Edit Address Screen UI (form).
+    * `Task:` Connect Address screens to `AddressBloc`.
+22. **Dependency Injection:**
+    * `Task:` Register Profile & Address datasources, repositories, use cases, and BloCs.
+23. **Testing:**
+24. **Testing:**
+    * `Task:` Unit tests for Profile & Address BloCs, Use Cases, Repositories.
+
+---
+
+**Phase 4: Restaurant Browsing (`features/restaurant`)**
+
+25. **Domain Layer:**
+    * `Task:` Define `Restaurant`, `Category`, `MenuItem` entities.
+    * `Task:` Define `RestaurantRepository` interface.
+    * `Task:` Define `GetRestaurantsUseCase`, `GetRestaurantDetailsUseCase`, `SearchRestaurantsUseCase`.
+26. **Data Layer:**
+    * `Task:` Define `RestaurantRemoteDataSource` for `restaurants`, `categories`, `menu_items` tables (SELECT operations, filtering, searching).
+    * `Task:` Implement `RestaurantRepositoryImpl`.
+27. **Presentation Layer:**
+    * `Task:` Create `RestaurantListBloc` (handle fetching, searching, filtering).
+    * `Task:` Design and Implement Home Screen UI (display list of `RestaurantCard` widgets). [DONE]
+    * `Task:` Implement `RestaurantCard` widget (`presentation/widgets/`).
+    * `Task:` Implement Search and Filter UI elements on Home Screen. [DONE]
+    * `Task:` Create `RestaurantDetailBloc` (handle fetching details for one restaurant).
+    * `Task:` Design and Implement Restaurant Detail Screen UI (show info, categories, menu items).
+    * `Task:` Implement Menu Item display widget.
+    * `Task:` Integrate `CachedNetworkImage` for restaurant and menu item images using URLs from Supabase Storage.
+28. **Dependency Injection:**
+    * `Task:` Register Restaurant datasources, repositories, use cases, and BloCs.
+29. **Testing:**
+    * `Task:` Unit tests for Restaurant BloCs, Use Cases, Repositories.
+    * `Task:` Widget tests for `RestaurantCard`, Restaurant List/Detail screens.
+
+---
+
+**Phase 5: Cart Management (`features/cart`)**
+
+30. **Domain Layer:**
+    * `Task:` Define `Cart` and `CartItem` entities.
+    * `Task:` Define `CartRepository` interface (might be simpler, managing local state).
+    * `Task:` Define `AddToCartUseCase`, `UpdateCartItemUseCase`, `RemoveFromCartUseCase`, `ClearCartUseCase`, `GetCartUseCase`.
+31. **Data Layer (Local State):**
+    * `Task:` Implement `CartRepositoryImpl` managing state in memory or using a local storage solution (`shared_preferences` or `hydrated_bloc`).
+32. **Presentation Layer:**
+    * `Task:` Create `CartBloc` (manage cart state: items, quantities, totals).
+    * `Task:` Implement 'Add to Cart' functionality in Restaurant Detail Screen (dispatch event to `CartBloc`).
+    * `Task:` Design and Implement Cart Screen UI (list items, quantities, totals, checkout button).
+    * `Task:` Update Cart Icon/Badge in main navigation shell based on `CartBloc` state.
+33. **Dependency Injection:**
+    * `Task:` Register Cart repository, use cases, and BloC.
+34. **Testing:**
+    * `Task:` Unit tests for `CartBloc`, Use Cases, Repository.
+
+---
+
+**Phase 6: Checkout & Payment (`features/checkout`, `features/payment`)**
+
+35. **Domain Layer (Checkout):**
+    * `Task:` Define `CheckoutRepository` interface.
+    * `Task:` Define `PlaceOrderUseCase` (coordinates cart, address, payment, order creation).
+36. **Presentation Layer (Checkout):**
+    * `Task:` Create `CheckoutBloc` (manage state: selected address, payment method, order summary, status - Idle, Processing, Success, Failure).
+    * `Task:` Design and Implement Checkout Screen UI (address selection, payment selection - CinetPay, order summary, 'Place Order' button).
+    * `Task:` Integrate Address selection (using `AddressBloc` data).
+    * `Task:` Integrate Cart summary (using `CartBloc` data).
+37. **Payment Integration (CinetPay):**
+    * `Task:` Add CinetPay SDK dependency (if available) or prepare for API calls.
+    * `Task:` Create `PaymentService` or similar abstraction (`features/payment/`).
+    * `Task:` Implement function to initiate CinetPay payment flow (triggered by `CheckoutBloc`).
+    * `Task:` Implement handling of CinetPay callbacks/responses (success/failure).
+    * `Task:` Securely manage CinetPay API keys (NOT in client code).
+    * `Task:` (Optional but Recommended) Implement payment verification step (e.g., via Supabase Edge Function calling CinetPay API).
+38. **Order Placement (Triggered on Payment Success):**
+    * `Task:` Implement `OrderRemoteDataSource` (`features/order/data/datasources/`) to insert into `orders` and `order_items` tables.
+    * `Task:` Implement `OrderRepository` (`features/order/domain/repositories/` and `data/repositories/`).
+    * `Task:` Implement `PlaceOrderUseCase` logic: get cart, user, address, payment details -> call `OrderRepository.createOrder`.
+    * `Task:` `CheckoutBloc` calls `PlaceOrderUseCase` on successful payment.
+39. **Dependency Injection:**
+    * `Task:` Register Checkout/Payment/Order services, repositories, use cases, BloCs.
+40. **Testing:**
+    * `Task:` Unit tests for `CheckoutBloc`.
+    * `Task:` Unit tests for `PlaceOrderUseCase` (mocking dependencies).
+    * `Task:` Mock CinetPay interactions for testing.
+
+---
+
+**Phase 7: Order History & Tracking (`features/order`)**
+
+41. **Domain Layer:**
+    * `Task:` Define `Order` and `OrderItem` entities (if different from CartItem).
+    * `Task:` Extend `OrderRepository` with `GetOrdersUseCase`, `GetOrderDetailsUseCase`.
+    * `Task:` Define `TrackOrderUseCase` (for real-time subscription).
+42. **Data Layer:**
+    * `Task:` Extend `OrderRemoteDataSource` for fetching orders/details (SELECT from `orders`, `order_items` based on user ID).
+    * `Task:` Implement Supabase Realtime subscription logic in `OrderRemoteDataSource` or Repository for specific order IDs.
+43. **Presentation Layer:**
+    * `Task:` Create `OrderHistoryBloc` (fetch list of past orders).
+    * `Task:` Design and Implement Order History Screen UI (list orders).
+    * `Task:` Design and Implement Order Details Screen UI (show full details of a past order).
+    * `Task:` Create `OrderTrackingBloc` (subscribe to updates for a specific order).
+    * `Task:` Design and Implement Order Confirmation/Tracking Screen UI (show initial status, update dynamically via `OrderTrackingBloc`).
+    * `Task:` Connect screens to respective BloCs.
+44. **Dependency Injection:**
+    * `Task:` Register Order History/Tracking BloCs, Use Cases.
+45. **Testing:**
+    * `Task:` Unit tests for Order BloCs, Use Cases.
+    * `Task:` Widget tests for Order History/Details screens.
+
+---
+
+**Phase 8: Reviews & Ratings (`features/review`)**
+
+46. **Domain Layer:**
+    * `Task:` Define `Review` entity.
+    * `Task:` Define `ReviewRepository` interface.
+    * `Task:` Define `SubmitReviewUseCase`, `GetReviewsForRestaurantUseCase`.
+47. **Data Layer:**
+    * `Task:` Define `ReviewRemoteDataSource` for `reviews` table (INSERT, SELECT).
+    * `Task:` Implement `ReviewRepositoryImpl`.
+    * `Task:` (Optional - Backend) Implement Supabase trigger/function to update `restaurants.average_rating` when a review is added.
+48. **Presentation Layer:**
+    * `Task:` Create `ReviewBloc` (handle submitting reviews, fetching reviews).
+    * `Task:` Add 'Rate Order' button/section to Order Details screen (for completed orders).
+    * `Task:` Design and Implement Submit Review Screen/Modal UI (rating input, comment field).
+    * `Task:` Display average rating on Restaurant List/Detail screens (using data from `RestaurantBloc`).
+    * `Task:` Display individual reviews on Restaurant Detail Screen (using `ReviewBloc`).
+49. **Dependency Injection:**
+    * `Task:` Register Review datasource, repository, use cases, BloC.
+50. **Testing:**
+    * `Task:` Unit tests for `ReviewBloc`, Use Cases, Repository.
+
+---
+
+**Phase 9: Finalization & Deployment**
+
+51. **Error Handling & Reporting:**
+    * `Task:` Implement global error handling/display.
+    * `Task:` Integrate an error reporting service (e.g., Sentry).
+52. **Refinement:**
+    * `Task:` Perform UI polish based on Design System.
+    * `Task:` Conduct thorough manual testing of all features and edge cases.
+    * `Task:` Optimize performance (check for jank, optimize image loading, analyze build performance).
+    * `Task:` Review and add code documentation/comments.
+53. **Deployment Prep:**
+    * `Task:` Generate app icons for iOS and Android.
+    * `Task:` Configure app bundle IDs, display names, versioning.
+    * `Task:` Prepare store listing information (screenshots, descriptions).
+    * `Task:` Build release versions (`flutter build apk --release`, `flutter build ipa`).
+49. **Deployment:**
+    * `Task:` Upload to Google Play Store.
+    * `Task:` Upload to Apple App Store Connect.

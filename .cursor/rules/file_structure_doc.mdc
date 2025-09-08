@@ -1,0 +1,34 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Food Delivery App - File Structure (Flutter Clean Arch + BloC)
+
+**Version:** 1.0
+**Date:** 2025-04-22
+
+This document proposes a file structure for the Flutter project, adhering to Clean Architecture principles and utilizing the BloC pattern for state management.
+
+food_delivery_app/├── android/├── ios/├── lib/│   ├── main.dart                 # App entry point, Supabase init, DI setup│   ├── injection_container.dart  # Dependency injection setup (get_it/injectable)│   ││   ├── core/                     # Shared code, independent of features│   │   ├── config/               # App configuration (themes, routes)│   │   │   ├── router/           # Routing setup (GoRouter/AutoRoute)│   │   │   │   └── app_router.dart│   │   │   └── theme/│   │   │       └── app_theme.dart│   │   ├── constants/            # App-wide constants (strings, keys, enums)│   │   │   └── app_constants.dart│   │   ├── error/                # Error handling (Failure classes, exceptions)│   │   │   ├── exceptions.dart│   │   │   └── failure.dart│   │   ├── network/              # Network utilities (e.g., NetworkInfo checker)│   │   │   └── network_info.dart│   │   ├── usecases/             # Base use case definition│   │   │   └── usecase.dart│   │   ├── utils/                # Common utility functions (validators, formatters)│   │   └── widgets/              # Common reusable widgets (e.g., LoadingIndicator, ErrorMessage)│   ││   └── features/                 # Feature-specific modules│       └── feature_name/         # Example: 'auth', 'restaurant', 'order', 'profile'│           ││           ├── data/             # Data layer: Implementation details│           │   ├── datasources/  # Abstracting data sources│           │   │   ├── feature_remote_datasource.dart # API/Supabase calls│           │   │   └── feature_local_datasource.dart  # Cache/Prefs (if needed)│           │   ├── models/       # Data Transfer Objects (DTOs), JSON parsing logic│           │   │   └── feature_model.dart # Often extends Domain Entities│           │   └── repositories/ # Implementation of Domain Repositories│           │       └── feature_repository_impl.dart│           ││           ├── domain/           # Domain layer: Core business logic, abstractions│           │   ├── entities/     # Business objects, pure Dart classes│           │   │   └── feature_entity.dart│           │   ├── repositories/ # Abstract contracts for data layer│           │   │   └── feature_repository.dart│           │   └── usecases/     # Specific business logic operations│           │       └── get_feature_data.dart # Example use case│           ││           └── presentation/     # Presentation layer: UI and State Management│               ├── bloc/         # BloC/Cubit for state management│               │   ├── feature_bloc.dart  # Or feature_cubit.dart│               │   ├── feature_event.dart # Events for BloC│               │   └── feature_state.dart # States for BloC/Cubit│               ├── pages/        # Screens/Pages for the feature│               │   └── feature_screen.dart│               └── widgets/      # Feature-specific widgets│                   └── feature_specific_widget.dart│├── test/                         # Unit and Widget tests mirroring lib/ structure│   ├── core/│   └── features/│       └── feature_name/│           ├── data/│           │   ├── datasources/│           │   ├── models/│           │   └── repositories/│           ├── domain/│           │   └── usecases/│           └── presentation/│               └── bloc/│├── pubspec.yaml                  # Project dependencies and assets└── README.md
+**Explanation:**
+
+* **`main.dart`:** Initializes essential services like Supabase, Dependency Injection (`get_it`), and runs the main App Widget.
+* **`injection_container.dart`:** Configures `get_it` or `injectable` to register all dependencies (BloCs, Use Cases, Repositories, Data Sources).
+* **`core/`:** Contains code shared across multiple features and not specific to any single feature. This includes base classes, utilities, configuration, error handling, and common widgets.
+* **`features/`:** The main application is divided into feature modules (e.g., authentication, restaurant browsing, ordering). Each feature folder follows the Clean Architecture layers:
+    * **`data/`:** Handles how data is fetched and stored.
+        * `datasources`: Interfaces with external sources (Supabase API, local cache).
+        * `models`: Data structures specific to the data layer (e.g., for JSON parsing), often extending domain entities.
+        * `repositories`: Implements the abstract repositories defined in the domain layer, coordinating data sources.
+    * **`domain/`:** Contains the core business logic, independent of UI and data implementation details.
+        * `entities`: Plain Dart objects representing the core concepts of the feature.
+        * `repositories`: Abstract classes defining contracts for what data operations are needed (implemented in the data layer).
+        * `usecases`: Encapsulate specific pieces of business logic, orchestrating calls to repositories.
+    * **`presentation/`:** Handles UI and state management.
+        * `bloc` (or `cubit`): Contains the BloC/Cubit classes, events, and states responsible for managing the UI state for the feature.
+        * `pages`: The actual screens (Widgets) that the user interacts with. They listen to BloC states and dispatch events.
+        * `widgets`: UI components specific to this feature.
+* **`test/`:** Contains unit and widget tests, mirroring the structure of the `lib` folder to make tests easy to locate.
+
+This structure promotes separation of concerns, testability, and maintainability as the application grows.

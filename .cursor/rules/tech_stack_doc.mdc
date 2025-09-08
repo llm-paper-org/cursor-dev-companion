@@ -1,0 +1,96 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Food Delivery App - Tech Stack & API Usage
+
+This document details the technology stack and how different components and APIs interact within the Food Delivery App.
+
+## 1. Core Technologies
+
+* **Frontend (Mobile App):**
+    * **Framework:** Flutter (latest stable version)
+    * **Language:** Dart
+    * **State Management:** BloC / flutter_bloc
+    * **Architecture:** Clean Architecture
+    * **Navigation:** GoRouter or AutoRoute (TBD)
+    * **Dependency Injection:** get_it + injectable (TBD)
+* **Backend:**
+    * **Platform:** Supabase (Cloud Hosted)
+* **Payment Gateway:**
+    * **Provider:** CinetPay
+
+## 2. Frontend (Flutter) Details
+
+* **Key Packages:**
+    * `flutter_bloc`: For implementing BloC pattern.
+    * `equatable`: For value equality in BloC states/events.
+    * `get_it` / `injectable`: For managing dependencies.
+    * `http` or `dio`: For making network requests (if needed beyond Supabase client).
+    * `supabase_flutter`: Official Supabase client library for Dart/Flutter.
+    * `cinetpay_sdk` (or equivalent): Official/community SDK for CinetPay integration. If no SDK exists, use `http`/`dio` for direct API calls.
+    * `google_fonts`: For custom fonts (as defined in Design System).
+    * `shared_preferences` or `flutter_secure_storage`: For storing simple data like auth tokens or user preferences securely.
+    * `geolocator` / `geocoding`: (If implementing location-based features) For getting user location.
+    * `cached_network_image`: For efficient image loading and caching.
+* **Architecture:**
+    * **Presentation Layer:** Widgets (UI), Pages (Screens), BloCs/Cubits (State Management).
+    * **Domain Layer:** Entities (Core business objects), Repositories (Abstract contracts), Use Cases (Business logic).
+    * **Data Layer:** Models (Data transfer objects), Repositories Implementation (Data fetching/storage logic), Data Sources (Remote - Supabase, Local - Cache/Prefs).
+* **Responsibilities:**
+    * Rendering UI based on state from BloCs.
+    * Handling user input and dispatching events to BloCs.
+    * Executing Use Cases to fetch or manipulate data.
+    * Navigating between screens.
+    * Integrating with native device features (location, etc.).
+    * Interacting with Supabase via the `supabase_flutter` client.
+    * Initiating and handling the CinetPay payment flow.
+
+## 3. Backend (Supabase) Details
+
+* **Core Services Used:**
+    * **Authentication:** Manages user sign-up, login, password reset, session management. Utilizes email/password auth, potentially social providers.
+    * **Database (Postgres):** Stores all application data (users, restaurants, menus, orders, addresses, reviews). Relational structure defined in the Backend Structure document.
+    * **Storage:** Stores images for restaurants and menu items. Access controlled via policies.
+    * **Realtime:** Listens for database changes (specifically on the `orders` table) to provide real-time order status updates to the user's app.
+    * **Edge Functions (Optional):** Could be used for specific backend logic that doesn't fit well in RLS or client-side logic (e.g., complex calculations, third-party integrations beyond payments).
+* **API Interaction:**
+    * The Flutter app interacts with Supabase primarily through the `supabase_flutter` client library, which handles authentication headers and provides a type-safe way to query the database, manage storage, and subscribe to real-time events.
+    * Direct REST API calls are generally avoided in favor of the client library.
+* **Security:**
+    * **Row Level Security (RLS):** Extensively used on database tables to ensure users can only access/modify data they are authorized to (e.g., a user can only see their own orders and addresses, cannot modify restaurant menus). Policies are crucial for security.
+    * **Storage Policies:** Control access to image buckets (e.g., authenticated users can read, specific roles might upload).
+
+## 4. Payment Gateway (CinetPay) Details
+
+* **Integration Method:**
+    * **SDK:** If a Flutter SDK is provided by CinetPay, it will be used to initiate payments, handle callbacks, and verify transactions. This is the preferred method.
+    * **API:** If no suitable SDK exists, the app will use `http`/`dio` to interact directly with the CinetPay API endpoints for:
+        * Initiating a payment request.
+        * Handling redirects or callbacks.
+        * Verifying payment status.
+* **API Usage:**
+    * **Initiate Payment:** Send order details (amount, currency, transaction ID, customer info) to CinetPay API to get a payment link or initiate the SDK flow.
+    * **Handle Callback/Webhook:** Receive notification from CinetPay (via app callback or backend webhook) about the payment status (success, failure, pending).
+    * **Verify Transaction:** Make a server-to-server call (ideally from a Supabase Edge Function or trusted backend) or a secure client-side call to CinetPay to confirm the final status of a transaction before marking the order as paid in the database.
+* **Security:**
+    * API keys and sensitive credentials for CinetPay must be stored securely (e.g., environment variables, secure backend configuration) and **never** hardcoded in the client app.
+    * Transaction verification is critical to prevent fraud.
+
+## 5. Data Flow Example (Placing an Order)
+
+1.  **Flutter App (Checkout Screen):** User taps 'Place Order & Pay'.
+2.  **Flutter App (Payment BloC/Service):** Initiates CinetPay payment flow (SDK or API call) with order total and unique transaction ID.
+3.  **CinetPay:** Handles user payment interaction.
+4.  **CinetPay -> Flutter App:** Returns payment status (Success/Failure) via SDK callback or redirect URL.
+5.  **Flutter App (Payment BloC/Service):**
+    * **If Success:** Proceeds to verify payment (optional but recommended, potentially via Edge Function). Calls an 'Order Use Case'.
+    * **If Failure:** Updates UI to show error.
+6.  **Flutter App (Order Use Case):** Gathers order details (cart items, user ID, address, CinetPay transaction ID).
+7.  **Flutter App (Order Repository):** Calls Supabase client (`supabase.from('orders').insert(...)`) to save the order data to the Postgres database. Related `order_items` are also inserted.
+8.  **Supabase:**
+    * Inserts data into `orders` and `order_items` tables.
+    * RLS policies ensure the user can insert orders linked to their own `user_id`.
+    * Realtime service detects the new insert in the `orders` table.
+9.  **Flutter App (Order Tracking Screen):** Subscribed to Supabase Realtime for changes to the specific order ID. Receives the new order data and displays the 'Order Placed' status.

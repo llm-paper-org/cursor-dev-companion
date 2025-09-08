@@ -1,0 +1,137 @@
+# Food Delivery App - Detailed App Flow
+
+This document describes the typical user flows within the Food Delivery App.
+
+## 1. Onboarding & Authentication Flow
+
+1.  **App Launch:** User opens the app.
+2.  **Splash Screen:** Brief display of logo/branding.
+3.  **First-time Check:** App checks if this is the first time the user is opening the app.
+    * **If First Time:** User is directed to the Onboarding screens.
+    * **If Not First Time:** App proceeds to authentication check.
+4.  **Onboarding Flow:**
+    * User is shown a series of 3 onboarding screens highlighting the app's key features:
+      * Screen 1: "Collect And Celebrate" - Shows the social and celebratory aspects of food.
+      * Screen 2: "Get Ready For A Surprise" - Teases special offers and discoveries.
+      * Screen 3: "Quick Delivery at Your Doorstep" - Emphasizes the fast delivery service.
+    * Each screen includes an illustration, headline, and brief description.
+    * User can navigate through screens by tapping 'Next' or can skip the entire flow.
+    * On the final screen, user can choose to 'Sign in' or 'Sign up'.
+    * Once completed, onboarding is marked as done and won't show again.
+5.  **Authentication Check:** App checks for existing authentication token.
+    * **If Authenticated:** User is directed to the Home Screen.
+    * **If Not Authenticated:** User is directed to the Login/Signup Screen.
+6.  **Login/Signup Screen:** Presents options to 'Login' or 'Sign Up'.
+7.  **Signup Flow:**
+    * User selects 'Sign Up'.
+    * Enters required details (e.g., email, password, confirm password, name).
+    * App validates input.
+    * User submits registration form.
+    * App calls Supabase Auth API to create a new user.
+    * **On Success:** User is logged in and redirected to the Home Screen.
+    * **On Failure (e.g., email exists, weak password):** Display appropriate error message.
+8.  **Login Flow:**
+    * User selects 'Login'.
+    * Enters email and password.
+    * App validates input.
+    * User submits login form.
+    * App calls Supabase Auth API to authenticate the user.
+    * **On Success:** User is logged in and redirected to the Home Screen.
+    * **On Failure (e.g., invalid credentials):** Display appropriate error message.
+9.  **Password Reset Flow:**
+    * User selects 'Forgot Password' on the Login screen.
+    * Enters registered email address.
+    * App calls Supabase Auth API to send a password reset link.
+    * User receives email, clicks link, and sets a new password (handled via Supabase UI/redirect).
+
+## 2. Core Ordering Flow
+
+1.  **Home Screen (Restaurant List and food List):**
+    * Displays a list of nearby/available restaurants and foods (cards with image, name, cuisine, rating, delivery estimate).
+    * Includes a search bar and filter options.
+    * User can scroll through the list.
+    * User taps on a restaurant/food card.
+2.  **Restaurant/food Detail Screen:**
+    * Displays restaurant/food details (header image, name, address, hours, rating, reviews).
+    * Shows the menu, organized by categories.
+    * User can scroll through menu items.
+    * User taps on a menu item.
+3.  **Menu Item Detail (Optional/Modal):**
+    * Displays larger image, description, price.
+    * Allows quantity selection.
+    * (If applicable) Allows selection of variants/add-ons.
+    * User taps 'Add to Cart'.
+4.  **Add to Cart Action:**
+    * Item is added to the cart state (BloC).
+    * A visual confirmation is shown (e.g., snackbar, cart icon update).
+    * User can continue browsing or navigate to the cart.
+5.  **Cart Screen:**
+    * Accessed via a persistent cart icon/button.
+    * Lists all items in the cart with quantity and price.
+    * Allows users to adjust quantity or remove items.
+    * Displays subtotal, delivery fee (calculated based on address/restaurant), and total amount.
+    * User taps 'Proceed to Checkout'.
+6.  **Checkout Screen:**
+    * **Step 1: Delivery Address:**
+        * Displays saved addresses. Allows selection or adding a new address.
+        * User confirms/selects address.
+    * **Step 2: Payment Method:**
+        * Displays available payment options (primarily CinetPay).
+        * User selects CinetPay.
+    * **Step 3: Order Summary:**
+        * Shows final order details: items, address, payment method, total cost.
+    * User taps 'Place Order & Pay'.
+7.  **Payment Processing (CinetPay):**
+    * App initiates the CinetPay payment flow (using SDK or redirect).
+    * User completes payment steps within the CinetPay interface.
+    * CinetPay returns payment status (success/failure) to the app.
+8.  **Order Placement:**
+    * **On Payment Success:**
+        * App sends order details (user info, restaurant, items, address, transaction ID) to the backend (Supabase Database).
+        * Backend creates the order record with 'Placed' status.
+        * App navigates to the Order Confirmation/Tracking screen.
+    * **On Payment Failure:**
+        * App displays an error message to the user.
+        * User remains on the Checkout screen, potentially with options to retry or change payment.
+
+## 3. Post-Order Flow
+
+1.  **Order Confirmation/Tracking Screen:**
+    * Displays a "Thank You" message and order summary.
+    * Shows the initial order status ('Order Placed').
+    * Displays estimated delivery time.
+    * Listens for real-time updates (via Supabase Realtime) on order status.
+    * Updates the status visually as it changes (Preparing -> Out for Delivery -> Delivered).
+2.  **Order History Screen:**
+    * Accessed from user profile or main navigation.
+    * Lists all past orders (most recent first).
+    * Each list item shows key details (restaurant, date, total, status).
+    * User taps on an order to view full details.
+3.  **Order Details Screen (from History):**
+    * Shows complete details of a past order (items, cost breakdown, address, status).
+    * Provides a 'Reorder' button (adds items from this order to the current cart).
+    * If the order is 'Delivered', provides a 'Rate Order' button.
+4.  **Rate Order Screen:**
+    * Allows user to provide a star rating (1-5) for the order/restaurant.
+    * Optional text field for comments/review.
+    * User submits the rating.
+    * App saves the rating/review to the backend (Supabase Database), associated with the order/restaurant.
+
+## 4. Profile & Address Management Flow
+
+1.  **Profile Screen:**
+    * Accessed from main navigation.
+    * Displays user name and email.
+    * Provides options to 'Edit Profile', 'Manage Addresses', 'Order History', 'Logout'.
+2.  **Edit Profile Screen:**
+    * Allows editing name, phone number (optional).
+    * User saves changes. App updates user data in Supabase.
+3.  **Address Management Screen:**
+    * Lists saved delivery addresses.
+    * Option to 'Add New Address'.
+    * Options to 'Edit' or 'Delete' existing addresses.
+    * Option to set an address as 'Default'.
+4.  **Add/Edit Address Screen:**
+    * Form fields for address details (street, city, postal code, instructions).
+    * Map integration for pin-dropping location (Optional - v1.1).
+    * User saves the address. App creates/updates the address record in Supabase, linked to the user.

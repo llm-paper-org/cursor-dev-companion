@@ -1,0 +1,166 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Food Delivery App - Backend Structure (Supabase)
+
+This document outlines the proposed database schema, security rules, and storage configuration within Supabase for the Food Delivery App.
+
+## 1. Database Schema (Postgres)
+
+* **Naming Convention:** Snake case for tables and columns (e.g., `user_profiles`, `created_at`). Use singular names for tables representing entities (e.g., `restaurant`, `order`).
+* **Timestamps:** Use `TIMESTAMPTZ` for all timestamp columns. Enable automatic `created_at` and `updated_at` timestamps using Supabase's built-in functionality or triggers.
+* **UUIDs:** Use `UUID` as primary keys where appropriate, especially for publicly exposed IDs. Link users via Supabase Auth's `auth.users.id`.
+
+### Tables:
+
+1.  **`user_profiles`** (Public Schema - Extends `auth.users`)
+    * `id` (UUID, PK, FK referencing `auth.users.id`) - User ID from Supabase Auth.
+    * `full_name` (TEXT, Nullable)
+    * `phone_number` (TEXT, Nullable, Unique)
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Users can only select/update their own profile.
+
+2.  **`addresses`** (Public Schema)
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `user_id` (UUID, FK referencing `auth.users.id`, Not Null) - Links address to a user.
+    * `street_address` (TEXT, Not Null)
+    * `city` (TEXT, Not Null)
+    * `postal_code` (TEXT, Nullable)
+    * `details` (TEXT, Nullable) - e.g., apartment number, delivery instructions
+    * `latitude` (FLOAT, Nullable) - For map features
+    * `longitude` (FLOAT, Nullable) - For map features
+    * `is_default` (BOOLEAN, Default `false`) - Only one default per user (handle logic via trigger/function or client-side).
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Users can select/insert/update/delete their own addresses.
+
+3.  **`restaurants`** (Public Schema)
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `name` (TEXT, Not Null)
+    * `description` (TEXT, Nullable)
+    * `cuisine_type` (TEXT, Nullable)
+    * `address` (TEXT, Not Null) - Display address
+    * `latitude` (FLOAT, Nullable)
+    * `longitude` (FLOAT, Nullable)
+    * `phone_number` (TEXT, Nullable)
+    * `opening_hours` (JSONB, Nullable) - e.g., `{"Mon": "9:00-21:00", ...}`
+    * `image_url` (TEXT, Nullable) - Link to image in Supabase Storage.
+    * `estimated_delivery_time_minutes` (INTEGER, Nullable)
+    * `average_rating` (FLOAT, Default 0.0) - Could be calculated via trigger/function based on `reviews`.
+    * `is_active` (BOOLEAN, Default `true`) - To enable/disable restaurant visibility.
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Authenticated users can select. Specific admin role needed for insert/update/delete (initially managed via Supabase Studio/SQL).
+
+4.  **`categories`** (Public Schema) - Menu categories
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `restaurant_id` (UUID, FK referencing `restaurants.id`, Not Null)
+    * `name` (TEXT, Not Null)
+    * `display_order` (INTEGER, Default 0) - For sorting categories.
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Authenticated users can select. Admin role for CUD.
+
+5.  **`menu_items`** (Public Schema)
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `restaurant_id` (UUID, FK referencing `restaurants.id`, Not Null)
+    * `category_id` (UUID, FK referencing `categories.id`, Not Null)
+    * `name` (TEXT, Not Null)
+    * `description` (TEXT, Nullable)
+    * `price` (NUMERIC(10, 2), Not Null) - Use NUMERIC for currency.
+    * `image_url` (TEXT, Nullable) - Link to image in Supabase Storage.
+    * `is_available` (BOOLEAN, Default `true`) - To temporarily disable items.
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Authenticated users can select. Admin role for CUD.
+
+6.  **`orders`** (Public Schema)
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `user_id` (UUID, FK referencing `auth.users.id`, Not Null)
+    * `restaurant_id` (UUID, FK referencing `restaurants.id`, Not Null)
+    * `address_id` (UUID, FK referencing `addresses.id`, Not Null) - Delivery address used for the order.
+    * `total_amount` (NUMERIC(10, 2), Not Null)
+    * `delivery_fee` (NUMERIC(10, 2), Default 0.00)
+    * `status` (TEXT, Not Null, Default `'PENDING_PAYMENT'`) - e.g., 'PENDING_PAYMENT', 'PLACED', 'ACCEPTED', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'FAILED'.
+    * `payment_method` (TEXT, Nullable) - e.g., 'CINETPAY'
+    * `payment_transaction_id` (TEXT, Nullable, Unique) - ID from CinetPay.
+    * `estimated_delivery_at` (TIMESTAMPTZ, Nullable)
+    * `delivered_at` (TIMESTAMPTZ, Nullable)
+    * `delivery_instructions` (TEXT, Nullable) - Copied from address or added at checkout.
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Users can select their own orders. Users can insert orders linked to their `user_id`. Specific roles (admin, restaurant owner, driver) needed for updates (status changes). Enable Realtime for this table.
+
+7.  **`order_items`** (Public Schema) - Line items for an order
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `order_id` (UUID, FK referencing `orders.id`, Not Null)
+    * `menu_item_id` (UUID, FK referencing `menu_items.id`, Not Null)
+    * `quantity` (INTEGER, Not Null, Check `quantity > 0`)
+    * `price_at_order` (NUMERIC(10, 2), Not Null) - Price of the item when the order was placed (in case menu price changes).
+    * `item_name_at_order` (TEXT, Not Null) - Name of the item when ordered.
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Users can select items belonging to their own orders (via join with `orders`). Users can insert items linked to their own orders.
+
+8.  **`reviews`** (Public Schema)
+    * `id` (UUID, PK, Default `gen_random_uuid()`)
+    * `order_id` (UUID, FK referencing `orders.id`, Not Null, Unique) - Ensure one review per order.
+    * `user_id` (UUID, FK referencing `auth.users.id`, Not Null)
+    * `restaurant_id` (UUID, FK referencing `restaurants.id`, Not Null)
+    * `rating` (INTEGER, Not Null, Check `rating >= 1 AND rating <= 5`)
+    * `comment` (TEXT, Nullable)
+    * `created_at` (TIMESTAMPTZ, Default `now()`)
+    * `updated_at` (TIMESTAMPTZ, Default `now()`)
+    * *RLS:* Users can insert reviews for their own completed orders. Authenticated users can select reviews. Users can update/delete their own reviews.
+
+## 2. Row Level Security (RLS) Policies
+
+* **Enable RLS:** RLS must be enabled for all tables containing user-specific or sensitive data (`user_profiles`, `addresses`, `orders`, `order_items`, `reviews`).
+* **Default Deny:** Start with a default deny policy.
+* **`user_profiles`:**
+    * `SELECT`: `auth.uid() = id`
+    * `UPDATE`: `auth.uid() = id`
+* **`addresses`:**
+    * `SELECT`: `auth.uid() = user_id`
+    * `INSERT`: `auth.uid() = user_id` (with check)
+    * `UPDATE`: `auth.uid() = user_id`
+    * `DELETE`: `auth.uid() = user_id`
+* **`orders`:**
+    * `SELECT`: `auth.uid() = user_id` (or specific roles for admin/restaurant)
+    * `INSERT`: `auth.uid() = user_id` (with check)
+    * `UPDATE`: (Requires specific roles - e.g., check role in `auth.jwt() ->> 'user_role' = 'admin'`) - Status updates.
+* **`order_items`:**
+    * `SELECT`: `auth.uid() = (SELECT user_id FROM orders WHERE id = order_id)`
+    * `INSERT`: `auth.uid() = (SELECT user_id FROM orders WHERE id = order_id)` (with check)
+* **`reviews`:**
+    * `SELECT`: `authenticated` role can select.
+    * `INSERT`: `auth.uid() = user_id AND (SELECT status FROM orders WHERE id = order_id) = 'DELIVERED'` (with check)
+    * `UPDATE`: `auth.uid() = user_id`
+    * `DELETE`: `auth.uid() = user_id`
+* **`restaurants`, `categories`, `menu_items`:**
+    * `SELECT`: `authenticated` role can select.
+    * `INSERT/UPDATE/DELETE`: Requires specific admin role (initially manage via Studio/SQL).
+
+## 3. Storage
+
+* **Buckets:**
+    * `restaurant_images` (Public: No, Access: Read for authenticated, Upload for admin role) - Store restaurant logos/banners.
+    * `menu_item_images` (Public: No, Access: Read for authenticated, Upload for admin role) - Store menu item photos.
+* **Access Control:** Use Supabase Storage policies to control access based on authentication status and potentially user roles.
+* **URLs:** Store the public (but time-limited if not public bucket) or signed URL of the image in the corresponding database table (`restaurants.image_url`, `menu_items.image_url`). The Flutter app will use these URLs to display images.
+
+## 4. Realtime
+
+* **Enable:** Enable Realtime functionality on the Supabase project settings.
+* **Tables:** Enable Realtime specifically for the `orders` table.
+* **Usage:** The Flutter app will subscribe to changes on specific order rows (filtered by `order.id`) to receive status updates pushed from the backend whenever the `status` column (or other relevant fields) changes.
+
+## 5. Edge Functions (Optional - Future Consideration)
+
+* **Potential Uses:**
+    * **Payment Verification:** Server-to-server verification call to CinetPay after client-side success indication.
+    * **Notifications:** Triggering push notifications on order status changes.
+    * **Complex Calculations:** Calculating average ratings or delivery estimates if logic is too complex for database triggers.
+    * **Admin Actions:** Secure endpoints for administrative tasks.

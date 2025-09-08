@@ -1,0 +1,95 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Food Delivery App - Design System
+
+This document outlines the basic visual design guidelines for the Food Delivery App to ensure consistency across the user interface.
+
+## 1. Colors
+
+* **Primary:** `#FF5C01` (Vibrant Orange - for buttons, highlights, key actions)
+* **Secondary:** `#4CAF50` (Green - for success states, confirmation, delivery indicators)
+* **Accent:** `#FFC107` (Amber - for ratings, special offers)
+* **Background:**
+    * `#FFFFFF` (White - primary background)
+    * `#F5F5F5` (Light Gray - for cards, sections, subtle divisions)
+* **Text:**
+    * `#212121` (Near Black - primary text)
+    * `#757575` (Medium Gray - secondary text, subtitles, placeholders)
+    * `#FFFFFF` (White - text on dark/colored backgrounds)
+* **Status/Feedback:**
+    * **Error:** `#D32F2F` (Red)
+    * **Warning:** `#FFA000` (Orange/Yellow)
+    * **Success:** `#388E3C` (Darker Green)
+    * **Info:** `#1976D2` (Blue)
+
+## 2. Typography
+
+* **Font Family:** `Inter` (Use `google_fonts` package to import)
+    * Ensure weights `Regular (400)`, `Medium (500)`, `SemiBold (600)`, `Bold (700)` are available.
+* **Font Sizes & Styles:**
+    * **Headline Large (H1):** 32sp, Bold (700) - *Use sparingly, e.g., onboarding*
+    * **Headline Medium (H2):** 24sp, Bold (700) - *Screen titles*
+    * **Headline Small (H3):** 20sp, SemiBold (600) - *Section titles, important labels*
+    * **Title Large:** 18sp, Medium (500) - *Card titles, list item primary text*
+    * **Title Medium:** 16sp, Medium (500) - *Dialog titles, button text*
+    * **Body Large:** 16sp, Regular (400) - *Main content text*
+    * **Body Medium:** 14sp, Regular (400) - *Secondary text, descriptions, input field text*
+    * **Label Large:** 14sp, Medium (500) - *Form labels, captions*
+    * **Label Medium:** 12sp, Regular (400) - *Helper text, timestamps, small captions*
+    * **Label Small:** 10sp, Regular (400) - *Very small text, tags*
+* **Line Height:** Generally 1.4x - 1.5x the font size for body text for readability.
+
+## 3. Layout & Spacing
+
+* **Base Unit:** 8dp (Use multiples of this for consistent spacing)
+* **Common Spacing Values:**
+    * `xxs`: 4dp
+    * `xs`: 8dp
+    * `s`: 12dp
+    * `m`: 16dp (Standard padding around elements/screens)
+    * `l`: 24dp
+    * `xl`: 32dp
+    * `xxl`: 48dp
+* **Screen Padding:** Default horizontal padding of `16dp` (`m`) on most screens.
+* **List Item Spacing:** Use `8dp` (`xs`) or `12dp` (`s`) vertical spacing between items in lists.
+* **Grid:** Use standard Column/Row layouts. For card grids, ensure consistent spacing (`m`).
+* **Max Content Width:** For very wide screens (tablets), consider constraining the main content width to enhance readability (e.g., max 800dp).
+
+## 4. Components
+
+* **Buttons:**
+    * **Primary:** Solid background (Primary color), White text, rounded corners (8dp), standard padding (e.g., `12dp` vertical, `24dp` horizontal).
+    * **Secondary:** Outlined (Primary color border), Primary color text, rounded corners (8dp), standard padding.
+    * **Text:** No background/border, Primary color text.
+    * **Disabled State:** Reduced opacity (e.g., 50%), non-interactive.
+* **Cards:**
+    * Background: Light Gray (`#F5F5F5`) or White (`#FFFFFF`).
+    * Corner Radius: 8dp or 12dp.
+    * Elevation/Shadow: Subtle shadow to lift off the background.
+    * Padding: Internal padding of `16dp` (`m`).
+* **Input Fields:**
+    * Outlined style preferred.
+    * Rounded corners (4dp or 8dp).
+    * Clear label (Label Large/Medium).
+    * Placeholder text (Body Medium, Medium Gray).
+    * Helper/Error text below (Label Medium).
+* **Navigation Bar (Bottom):** Standard platform component. Use clear icons and labels (Label Medium). Active state highlighted with Primary color.
+* **App Bar:** Standard app bar. Title (Headline Small/Medium), optional back button, action icons (e.g., Cart).
+* **Images:** Use `aspectRatio` and ` BoxFit.cover` for consistency. Rounded corners (match card radius if inside a card). Use placeholders while loading (`CachedNetworkImage`).
+
+## 5. Iconography
+
+* **Source:** Material Icons (built into Flutter) or a consistent custom set.
+* **Style:** Filled or Outlined (choose one style for consistency).
+* **Size:** Standard sizes (e.g., 18dp, 24dp). Ensure icons are clear and easily understandable.
+* **Color:** Use Text colors (Primary/Secondary) or specific icon tints where appropriate.
+
+## 6. Accessibility
+
+* Ensure sufficient color contrast (use contrast checkers).
+* Provide semantic labels for interactive elements (buttons, icons) for screen readers.
+* Support dynamic font scaling where possible.
+* Ensure adequate touch target sizes (minimum 44x44dp).
