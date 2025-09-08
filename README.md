@@ -29,3 +29,16 @@ Ces paramètres aident Cursor à contextualiser et à appliquer les règles de m
 ## Différence entre les fichiers `.md` et `.mdc`
 
 Un fichier `.md` (Markdown) est un format de fichier de texte brut pour l'écriture de documents formatés en utilisant une syntaxe de texte brut. Il est largement utilisé pour la documentation, les `README.md` de projets et les blogs. Un fichier `.mdc`, en revanche, est un format spécifique à Cursor qui étend le Markdown avec un bloc de métadonnées YAML au début du fichier. Ce bloc de métadonnées permet de définir des propriétés spécifiques, comme la `description`, les `globs` et `alwaysApply`, qui aident Cursor à comprendre la portée et la pertinence du document dans un projet, fournissant ainsi un contexte enrichi pour l'assistant de code.
+
+## Comment utiliser ces fichiers lors du codage
+
+Ces fichiers `.mdc` sont des guides très importants. Cursor les lit pour bien comprendre le projet. Imaginez que vous voulez ajouter une nouvelle fonctionnalité, comme la gestion des adresses de livraison.
+
+1.  **Comprendre l'objectif :** Vous commencez par consulter `project_requirement_doc.mdc` pour voir ce que la fonctionnalité de gestion des adresses doit faire.
+2.  **Voir le plan :** Ensuite, vous regardez `implementation_plan.mdc` pour trouver les tâches spécifiques liées aux adresses, comme la création des entités, des dépôts et de l'interface utilisateur.
+3.  **Connaître la structure du code :** Pour savoir où placer les nouveaux fichiers (par exemple, entités, blocs), vous utilisez `file_structure_doc.mdc`. Il vous dit comment organiser votre code selon l'architecture Clean.
+4.  **Respecter le design :** Quand vous créez l'interface utilisateur pour ajouter ou modifier une adresse, vous consultez `frontend_guidelines_doc.mdc` pour utiliser les bonnes couleurs, polices et espacements.
+5.  **Interagir avec la base de données :** Pour savoir comment la table des adresses est structurée dans la base de données Supabase et quelles sont les règles de sécurité, vous examinez `backend_structure_doc.mdc`.
+6.  **Savoir comment tout fonctionne ensemble :** Enfin, `tech_stack_doc.mdc` et `app_flow_doc.mdc` vous donnent une vue d'ensemble de la manière dont la fonctionnalité d'adresse s'intègre avec le reste de l'application et comment les utilisateurs l'utiliseront.
+
+En suivant ces documents, Cursor peut mieux vous aider à écrire du code qui respecte les règles et la structure du projet, et vous, vous comprenez mieux ce que vous faites.
